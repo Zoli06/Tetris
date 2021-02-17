@@ -1,0 +1,24 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --fieldHeight: 100vh;
+  --fieldWidth: 100vw;
+  /*--squareHeight and --squareWidth from js*/
+}
+
+main {
+}
+
+.column {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.square {
+  background-color: black;
+  border: .1px solid white;
+  height: min(calc(var(--fieldHeight) / var(--squareHeight)), calc(var(--fieldWidth) / var(--squareWidth)));
+  width: min(calc(var(--fieldHeight) / var(--squareHeight)), calc(var(--fieldWidth) / var(--squareWidth)));
+}
