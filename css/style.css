@@ -17,8 +17,8 @@ main {
 }
 
 .square {
-  background-color: black;
-  border: .1px solid white;
+  background-color: var(--squareColor);
+  border: .1px solid var(--squareBorderColor);
   height: min(calc(var(--fieldHeight) / var(--squareHeight)), calc(var(--fieldWidth) / var(--squareWidth)));
   width: min(calc(var(--fieldHeight) / var(--squareHeight)), calc(var(--fieldWidth) / var(--squareWidth)));
 }
