@@ -3,12 +3,13 @@
 }
 
 :root {
-  --fieldHeight: 100vh;
+  --fieldHeight: 95vh;
   --fieldWidth: 100vw;
   /*--squareHeight and --squareWidth from js*/
 }
 
-main {
+main, section#nexts {
+  display: inline-block;
 }
 
 .column {
