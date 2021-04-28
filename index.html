@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
@@ -9,17 +10,48 @@
   <script src="./js/jquery.js"></script>
   <script src="./js/app.js"></script>
 </head>
+
 <body>
-  <section class="rewards">
-    Score: <span id="score-span">0</span>
-    Level: <span id="level-span">0</span>
-    Lines: <span id="lines-span">0</span>
-  </section>
   <main id="main">
     <!--filled by js-->
   </main>
-  <section id="nexts">
-
-  </section>
+  <div class="side">
+    <section id="nexts">
+      <!--filled by js-->
+    </section>
+    <section class="texts">
+      <div>
+        Level<span id="level-span">0</span>
+      </div>
+      <div>
+        Lines<span id="lines-span">0</span>
+      </div>
+      <div>
+        Score<span id="score-span">0</span>
+      </div>
+      <div class="controls">
+        Move left:  ←
+      </div>
+      <div class="controls">
+        Move right:  →
+      </div>
+      <div class="controls">
+        Soft drop:  ↓
+      </div>
+      <div class="controls">
+        Rotate right:  ↑
+      </div>
+      <div class="controls">
+        Rotate left:  Z
+      </div>
+      <div class="controls">
+        Pause:  P
+      </div>
+      <div class="tetris">
+        Tetris
+      </div>
+    </section>
+  </div>
 </body>
+
 </html>

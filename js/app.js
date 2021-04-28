@@ -1,6 +1,7 @@
 "use strict";
 
-function create2DArray(rows, columns, value = false) {
+//create a matrix and fill it
+function createMatrix(rows, columns, value = false) {
   let array = new Array(rows);
   for (let i = 0; i < rows; i++) {
     array[i] = new Array(columns);
@@ -12,6 +13,7 @@ function create2DArray(rows, columns, value = false) {
   return array;
 }
 
+//rotate a given matrix
 function rotateMatrix(matrix, direction = 'right') {
   let result = [];
 
@@ -34,14 +36,17 @@ function rotateMatrix(matrix, direction = 'right') {
   return result;
 }
 
+//generates random numbers
 function randomIntFromInterval(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+//get the cell by coordinates
 function divByCoordinate(x, y, field = 'main') {
   return $(`.column[${field}-data-x='${x}'] [${field}-data-y='${y}']`);
 }
 
+//draw the starting field
 function drawField(field = 'main') {
   let width;
   let height;
@@ -72,10 +77,12 @@ function drawField(field = 'main') {
   root.style.setProperty('--squareBorderColor', settings.field.squareBorderColor);
 }
 
+//color a cell
 function drawSquare(x, y, color, field = 'main') {
   divByCoordinate(x, y, field).css('background-color', color);
 }
 
+//remove an object from its prevous place
 function removeObject(inputObject, offsetX, offsetY, field) {
   for (let x = 0; x < inputObject.object.appearance[0].length; x++) {
     for (let y = 0; y < inputObject.object.appearance.length; y++) {
@@ -90,6 +97,7 @@ function removeObject(inputObject, offsetX, offsetY, field) {
   }
 }
 
+//draw an object and remove the from the previous place if we want
 function drawObject(inputObject, offsetX = 0, offsetY = 1, rotate = false, direction = 'left', field = 'main', remove = true) {
   if (remove) removeObject(inputObject, offsetX, offsetY, field);
 
@@ -110,6 +118,7 @@ function drawObject(inputObject, offsetX = 0, offsetY = 1, rotate = false, direc
   }
 }
 
+//add the moving object to the locked objects
 function updateField(inputObject) {
   for (let x = 0; x < inputObject.object.appearance[0].length; x++) {
     for (let y = 0; y < inputObject.object.appearance.length; y++) {
@@ -125,13 +134,15 @@ function updateField(inputObject) {
   }
 }
 
+//rewrite the variable of the locked objects but doesn't redraw the field
 function resetField(_field = 'main') {
   field = {
-    appearance: create2DArray(settings.field.main.height, settings.field.main.width),
+    appearance: createMatrix(settings.field.main.height, settings.field.main.width),
     coordinate: [0, 0]
   }
 }
 
+//generate new moving object
 function resetMovingObject() {
   movingObject = {
     object: { ...objects[gameplay.nexts[0]] },
@@ -142,6 +153,7 @@ function resetMovingObject() {
   }
 }
 
+//validate moves
 function checkObstruction(inputObjectOriginal, offsetX, offsetY, rotate = false) {
   let inputObject = JSON.parse(JSON.stringify(inputObjectOriginal));
   if (inputObject.coordinate[0] < 0) inputObject.coordinate[0] = 0;
@@ -170,15 +182,18 @@ function checkObstruction(inputObjectOriginal, offsetX, offsetY, rotate = false)
   return false;
 }
 
+//check if we need to wait for move before lock
 function doWeWait() {
   return movingObject.object.appearance.length + movingObject.coordinate[1] >= settings.field.main.height || checkObstruction(movingObject, 0, settings.moving.offsetY);
 }
 
+//remove a row from the locked objects
 function removeRow(row) {
   field.appearance.splice(row, 1);
   field.appearance.unshift(new Array(settings.field.main.width).fill(false));
 }
 
+//check if a row full
 function isARowFilled(remove = true) {
   let filled = false;
   let filledRows = [];
@@ -204,6 +219,7 @@ function isARowFilled(remove = true) {
   return { filled };
 }
 
+//incrase the score proportional to the cleared lines
 function increaseRewards(lines) {
   if (lines <= 0 || lines > 4) return;
   let baseScore = settings.scoring[lines - 1];
@@ -216,6 +232,7 @@ function increaseRewards(lines) {
   $('#lines-span').text(gameplay.rewards.lines);
 }
 
+//redraw the updated field. Call it when you updated the locked objects
 function redrawField() {
   for (let x = 0; x < field.appearance[0].length; x++) {
     for (let y = 0; y < field.appearance.length; y++) {
@@ -232,12 +249,14 @@ function redrawField() {
   }
 }
 
+//reset next objects
 function fillNexts() {
   for (let i = 0; i < 3; i++) {
     gameplay.nexts[i] = randomIntFromInterval(0, objects.length - 1);
   }
 }
 
+//generate new object to the nexts field
 function generateNewNext() {
   gameplay.nexts.shift();
   gameplay.nexts.push(randomIntFromInterval(0, objects.length - 1));
@@ -254,11 +273,12 @@ function generateNewNext() {
   }
 }
 
+//fully resset the field
 function fullResetField(field = 'main') {
   let fieldReset = {
     coordinate: [0, 0],
     object: {
-      appearance: create2DArray(settings.field[field].height, settings.field[field].width, true),
+      appearance: createMatrix(settings.field[field].height, settings.field[field].width, true),
       color: '#000000',
       name: undefined
     }
@@ -266,9 +286,111 @@ function fullResetField(field = 'main') {
   drawObject(fieldReset, 0, 0, false, undefined, field);
 }
 
+//reflect to actions
+function action(e) {
+  switch (e) {
+    case 'rotateRight':
+      if (
+        movingObject.coordinate[0] + rotateMatrix(movingObject.object.appearance, 'right')[0].length <= settings.field.main.width &&
+        movingObject.coordinate[1] + rotateMatrix(movingObject.object.appearance, 'right').length < settings.field.main.height
+      ) {
+        let jumpY = rotateMatrix(movingObject.object.appearance, 'right').length - movingObject.object.appearance.length;
+        if (!checkObstruction(movingObject, 0, -jumpY, true)) {
+          movingObject.coordinate[1] -= jumpY;
+          drawObject(movingObject, 0, -jumpY, true, 'right');
+        }
+      }
+      break;
+    case 'rotateLeft':
+      if (
+        movingObject.coordinate[0] + rotateMatrix(movingObject.object.appearance, 'left')[0].length <= settings.field.main.width &&
+        movingObject.coordinate[1] + rotateMatrix(movingObject.object.appearance, 'left').length < settings.field.main.height
+      ) {
+        let jumpY = rotateMatrix(movingObject.object.appearance, 'left').length - movingObject.object.appearance.length;
+        if (!checkObstruction(movingObject, 0, -jumpY, true)) {
+          movingObject.coordinate[1] -= jumpY;
+          drawObject(movingObject, 0, -jumpY, true, 'left');
+        }
+      }
+      break;
+    case 'moveLeft':
+      if (movingObject.coordinate[0] - settings.moving.offsetX > -1 && !checkObstruction(movingObject, -settings.moving.offsetX, 0)) {
+        movingObject.coordinate[0] -= settings.moving.offsetX;
+        drawObject(movingObject, -settings.moving.offsetX, 0);
+      }
+      break;
+    case 'moveRight':
+      if (movingObject.coordinate[0] + movingObject.object.appearance[0].length < settings.field.main.width && !checkObstruction(movingObject, settings.moving.offsetX, 0)) {
+        movingObject.coordinate[0] += settings.moving.offsetX;
+        drawObject(movingObject, settings.moving.offsetX, 0);
+      }
+      break;
+    case 'faster':
+      gameplay.fps = 60 / settings.moving.speeds[gameplay.level] * 3;
+      clearTimeout(refreshTimeOut);
+      refresh();
+      break;
+    case 'pause':
+      if (gameplay.paused) {
+        refreshTimeOut = setTimeout(refresh, 1000 / gameplay.fps);
+        gameplay.paused = false
+      } else {
+        clearTimeout(refreshTimeOut);
+        gameplay.paused = true;
+      }
+      break;
+    case 'hold':
+    /*if (!gameplay.holding) {
+    if (
+      movingObject.coordinate[0] + objects[gameplay.nexts[0]].appearance[0].length <= settings.field.main.width &&
+      movingObject.coordinate[1] + objects[gameplay.nexts[0]].appearance.length < settings.field.main.height
+    ) {
+      let jumpX = movingObject.object.appearance.length - objects[gameplay.nexts[0]].appearance.length;
+      let jumpY = movingObject.object.appearance[0].length - objects[gameplay.nexts[0]].appearance[0].length;
+      console.log(objects[gameplay.nexts[0]]);
+      let checkObject = {
+        coordinate: movingObject.coordinate,
+        object: objects[gameplay.nexts[0]]
+      } 
+      if (!checkObstruction(checkObject, -jumpX, -jumpY, true)) {
+        removeObject(movingObject, 0, 0, 'main');
+        //holdingObject = movingObject;
+        movingObject.coordinate[0] -= jumpX;
+        movingObject.coordinate[1] -= jumpY;
+        movingObject.object = objects[gameplay.nexts[0]];
+        generateNewNext();
+        drawObject(movingObject, 0, 0, false, 'right', 'main', false);
+      }
+    }
+  } else {
+    if (
+      movingObject.coordinate[0] + holdingObject.object.appearance[0].length <= settings.field.main.width &&
+      movingObject.coordinate[1] + holdingObject.object.appearance.length < settings.field.main.height
+    ) {
+      let jumpX = holdingObject.object.appearance.length - objects[gameplay.nexts[0]].appearance.length;
+      let jumpY = holdingObject.object.appearance[0].length - objects[gameplay.nexts[0]].appearance[0].length;
+      if (!checkObstruction(holdingObject, -jumpX, -jumpY, true)) {
+        removeObject(movingObject, 0, 0, 'main');
+        holdingObject = movingObject;
+        movingObject.coordinate[0] -= jumpX;
+        movingObject.coordinate[1] -= jumpY;
+        movingObject.object = objects[gameplay.nexts[0]];
+        generateNewNext();
+        drawObject(movingObject, 0, 0, false, 'right', 'main', false);
+      }
+    }
+  }*/
+      break;
+    case 'slower':
+      gameplay.fps = 60 / settings.moving.speeds[gameplay.level];
+  }
+}
+
+//call it every frame. One frame = one cell lower
 let refreshTimeOut;
 
 function refresh() {
+  //wait a frame before lock
   doWeWait() ?
     waiting = true :
     waiting = false;
@@ -280,11 +402,17 @@ function refresh() {
       waiting = true :
       waiting = false;
   } else {
+    //next object.
     if (movingObject.coordinate[1] >= 0) {
+      //add the moving object to the locked elements
       updateField(movingObject);
+      //check if a row full and delete it
       isARowFilled(true);
+      //redraw field with the deleted row
       redrawField();
+      //load the next object
       resetMovingObject();
+      //update the next objects
       generateNewNext();
     }
 
@@ -293,6 +421,7 @@ function refresh() {
   refreshTimeOut = setTimeout(refresh, 1000 / gameplay.fps);
 }
 
+//settings are here
 const settings = {
   field: {
     main: {
@@ -342,6 +471,7 @@ const settings = {
   ]
 };
 
+//we store objects here
 const objects = [
   {
     name: 'I',
@@ -407,6 +537,7 @@ const objects = [
   },
 ];
 
+//live variables
 let gameplay = {
   fps: undefined,
   level: 0,
@@ -418,6 +549,7 @@ let gameplay = {
   paused: false
 };
 
+//preparations
 //#region
 let root = document.documentElement;
 
@@ -432,9 +564,8 @@ resetMovingObject();
 let waiting = false;
 gameplay.level = prompt('Level (0, 29):', 0);
 gameplay.fps = 60 / settings.moving.speeds[gameplay.level];
-
 //#endregion
-console.log(gameplay.fps)
+
 $(document).ready(() => {
   $('#level-span').text(gameplay.level);
   drawField();
@@ -442,107 +573,36 @@ $(document).ready(() => {
   generateNewNext();
   refresh();
 
+  //events
   $(document).keydown((e) => {
     switch (e.which) {
       case settings.control.rotateRight:
-        if (
-          movingObject.coordinate[0] + rotateMatrix(movingObject.object.appearance, 'right')[0].length <= settings.field.main.width &&
-          movingObject.coordinate[1] + rotateMatrix(movingObject.object.appearance, 'right').length < settings.field.main.height
-        ) {
-          let jumpY = rotateMatrix(movingObject.object.appearance, 'right').length - movingObject.object.appearance.length;
-          if (!checkObstruction(movingObject, 0, -jumpY, true)) {
-            movingObject.coordinate[1] -= jumpY;
-            drawObject(movingObject, 0, -jumpY, true, 'right');
-          }
-        }
+        action('rotateRight');
         break;
       case settings.control.rotateLeft:
-        if (
-          movingObject.coordinate[0] + rotateMatrix(movingObject.object.appearance, 'left')[0].length <= settings.field.main.width &&
-          movingObject.coordinate[1] + rotateMatrix(movingObject.object.appearance, 'left').length < settings.field.main.height
-        ) {
-          let jumpY = rotateMatrix(movingObject.object.appearance, 'left').length - movingObject.object.appearance.length;
-          if (!checkObstruction(movingObject, 0, -jumpY, true)) {
-            movingObject.coordinate[1] -= jumpY;
-            drawObject(movingObject, 0, -jumpY, true, 'left');
-          }
-        }
-        break;
+        action('rotateLeft');k;
       case settings.control.moveLeft:
-        if (movingObject.coordinate[0] - settings.moving.offsetX > -1 && !checkObstruction(movingObject, -settings.moving.offsetX, 0)) {
-          movingObject.coordinate[0] -= settings.moving.offsetX;
-          drawObject(movingObject, -settings.moving.offsetX, 0);
-        }
+        action('moveLeft');
         break;
       case settings.control.moveRight:
-        if (movingObject.coordinate[0] + movingObject.object.appearance[0].length < settings.field.main.width && !checkObstruction(movingObject, settings.moving.offsetX, 0)) {
-          movingObject.coordinate[0] += settings.moving.offsetX;
-          drawObject(movingObject, settings.moving.offsetX, 0);
-        }
+        action('moveRight');
         break;
       case settings.control.faster:
-        gameplay.fps = 60 / settings.moving.speeds[gameplay.level] * 3;
-        clearTimeout(refreshTimeOut);
-        refresh();
+        action('faster');
         break;
       case settings.control.pause:
-        if (gameplay.paused) {
-          refreshTimeOut = setTimeout(refresh, 1000 / gameplay.fps);
-          gameplay.paused = false
-        } else {
-          clearTimeout(refreshTimeOut);
-          gameplay.paused = true;
-        }
+        action('pause');
         break;
       case settings.control.hold:
-      /*if (!gameplay.holding) {
-      if (
-        movingObject.coordinate[0] + objects[gameplay.nexts[0]].appearance[0].length <= settings.field.main.width &&
-        movingObject.coordinate[1] + objects[gameplay.nexts[0]].appearance.length < settings.field.main.height
-      ) {
-        let jumpX = movingObject.object.appearance.length - objects[gameplay.nexts[0]].appearance.length;
-        let jumpY = movingObject.object.appearance[0].length - objects[gameplay.nexts[0]].appearance[0].length;
-        console.log(objects[gameplay.nexts[0]]);
-        let checkObject = {
-          coordinate: movingObject.coordinate,
-          object: objects[gameplay.nexts[0]]
-        } 
-        if (!checkObstruction(checkObject, -jumpX, -jumpY, true)) {
-          removeObject(movingObject, 0, 0, 'main');
-          //holdingObject = movingObject;
-          movingObject.coordinate[0] -= jumpX;
-          movingObject.coordinate[1] -= jumpY;
-          movingObject.object = objects[gameplay.nexts[0]];
-          generateNewNext();
-          drawObject(movingObject, 0, 0, false, 'right', 'main', false);
-        }
-      }
-    } else {
-      if (
-        movingObject.coordinate[0] + holdingObject.object.appearance[0].length <= settings.field.main.width &&
-        movingObject.coordinate[1] + holdingObject.object.appearance.length < settings.field.main.height
-      ) {
-        let jumpX = holdingObject.object.appearance.length - objects[gameplay.nexts[0]].appearance.length;
-        let jumpY = holdingObject.object.appearance[0].length - objects[gameplay.nexts[0]].appearance[0].length;
-        if (!checkObstruction(holdingObject, -jumpX, -jumpY, true)) {
-          removeObject(movingObject, 0, 0, 'main');
-          holdingObject = movingObject;
-          movingObject.coordinate[0] -= jumpX;
-          movingObject.coordinate[1] -= jumpY;
-          movingObject.object = objects[gameplay.nexts[0]];
-          generateNewNext();
-          drawObject(movingObject, 0, 0, false, 'right', 'main', false);
-        }
-      }
-    }
-      break;*/
+        action('hold');
+      break;
     }
   });
 
   $(document).keyup((e) => {
     switch (e.which) {
       case settings.control.faster:
-        gameplay.fps = 60 / settings.moving.speeds[gameplay.level];
+        action('slower');
         break;
     }
   });

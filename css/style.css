@@ -1,15 +1,63 @@
+@font-face {
+  font-family: 'Aerologica';
+  src: url('../fonts/AerologicaRegular-K7day.ttf') format('truetype');
+}
+
 * {
   box-sizing: border-box;
 }
 
 :root {
   --fieldHeight: 95vh;
-  --fieldWidth: 100vw;
+  --fieldWidth: 48vw;
   /*--squareHeight and --squareWidth from js*/
 }
 
-main, section#nexts {
-  display: inline-block;
+body {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-family: 'Aerologica';
+  text-transform: uppercase;
+  padding-top: 2vh;
+}
+
+#main {
+  margin-right: 1vw;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+}
+
+.texts {
+  height: 100%;
+  position: relative;
+}
+
+.texts div {
+  display: block;
+  font-size: 5vmin;
+  line-height: 8.5vmin;
+}
+
+.texts div.tetris {
+  font-size: 8.5vmin;
+  position: absolute;
+  bottom: 0px;
+}
+
+.texts div span {
+  float: right;
+}
+
+.texts .controls {
+  font-size: 2vmin;
+  line-height: 2vmin;
+  font-family: sans-serif;
+  text-transform: capitalize;
+  width: fit-content;
 }
 
 .column {
