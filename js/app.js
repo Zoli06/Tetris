@@ -580,7 +580,7 @@ $(document).ready(() => {
         action('rotateRight');
         break;
       case settings.control.rotateLeft:
-        action('rotateLeft');k;
+        action('rotateLeft');
       case settings.control.moveLeft:
         action('moveLeft');
         break;
